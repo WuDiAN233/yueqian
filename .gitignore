@@ -1,1 +1,9 @@
 ﻿*.mp4
+
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/build/
+*.o
+*.obj
+a.out

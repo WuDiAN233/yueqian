@@ -1,0 +1,1 @@
+add_executable(main main.c wifi.c ble.c)
