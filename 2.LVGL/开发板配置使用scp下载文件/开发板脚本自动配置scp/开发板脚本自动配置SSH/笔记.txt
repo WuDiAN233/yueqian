@@ -1,7 +1,0 @@
-1.把openssh.tar压缩包和install_openssh_cn.sh脚本下载到开发板
-2.开发板执行install_openssh_cn.sh这个脚本
-  该脚本自动解压openssh.tar压缩包并提示你设置开发板root用户的密码
-
-需要注意的问题：
-  1.执行完该脚本之后，去开发板/etc/profile检查一下，看看这个脚本中是否有同学把ip地址改得乱七八糟(重新删除整理一下)，这个脚本里面还有一句话很重要，是用来执行ssh服务器的(这句话是/usr/local/sbin/sshd,看看有没有这句话，这句话是刚才第二步那个脚本写入进去的)
-  2.如果开发板可以ping通电脑，但是电脑还是无法使用scp或者ssh服务，你可以尝试在开发板上重新手动运行/usr/local/sbin/sshd试一下
