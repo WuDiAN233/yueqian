@@ -14,4 +14,6 @@
 #include <sys/ioctl.h>   //ioctl的头文件
 #include <sys/mman.h>  //mmap内存映射
 #include <dirent.h>   //目录操作
+#include <sys/wait.h>  //wait的头文件
+
 #endif
