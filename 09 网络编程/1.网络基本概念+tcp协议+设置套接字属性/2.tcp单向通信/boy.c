@@ -40,12 +40,12 @@ int main()
 	bindaddr.sin_family=AF_INET; //地址协议类型，ipv4
 	//逻辑不正确：ubuntu采用小端序存放ip地址
 	//但是：计算机网络要求tcp协议采用大端序存放ip地址
-	//bindaddr.sin_addr.s_addr="192.168.213.130";
+	//bindaddr.sin_addr.s_addr="192.168.3.3";
 	//正确的写法：linux提供专门的函数把小端序ip地址转成大端序存放
 	//写法1：指定了本地ubuntu的ip地址
-	//bindaddr.sin_addr.s_addr=inet_addr("192.168.213.130"); //绑定自己ubuntu的ip地址
+	//bindaddr.sin_addr.s_addr=inet_addr("192.168.3.3"); //绑定自己ubuntu的ip地址
 	//写法2：指定了本地ubuntu的ip地址
-	//inet_aton("192.168.213.130",&(bindaddr.sin_addr));     //绑定自己ubuntu的ip地址
+	//inet_aton("192.168.3.3",&(bindaddr.sin_addr));     //绑定自己ubuntu的ip地址
 	//写法3：任何同学的电脑上都能用 
 	bindaddr.sin_addr.s_addr=htonl(INADDR_ANY);
 	
@@ -61,10 +61,10 @@ int main()
 	bzero(&serveraddr,sizeof(serveraddr));
 	serveraddr.sin_family=AF_INET; 
 	//写法1：指定服务器的ip地址
-	serveraddr.sin_addr.s_addr=inet_addr("192.168.213.130"); //服务器的ip 
+	serveraddr.sin_addr.s_addr=inet_addr("192.168.3.3"); //服务器的ip 
 	//写法2：指定服务器的ip地址
-	//inet_aton("192.168.213.130",&(serveraddr.sin_addr));   //服务器的ip 
-	serveradd.sin_port=htons(10000); //服务器的端口号
+	//inet_aton("192.168.3.3",&(serveraddr.sin_addr));   //服务器的ip 
+	serveraddr.sin_port=htons(10000); //服务器的端口号
 	
 	//创建tcp套接字
 	tcpsock=socket(AF_INET,SOCK_STREAM,0);
