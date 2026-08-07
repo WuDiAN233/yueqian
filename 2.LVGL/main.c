@@ -461,6 +461,7 @@ int main(void)
     lv_obj_add_event_cb(kb1, close_kb_cb, LV_EVENT_CANCEL, NULL);
     lv_obj_add_event_cb(kb1, close_kb_cb, LV_EVENT_READY, NULL);
 
+    tcp_init();
     show_login();
 
     while(1)

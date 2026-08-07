@@ -14,7 +14,6 @@ lv_obj_t *morewin = NULL;
 lv_obj_t *chatmsg = NULL;
 lv_obj_t *roommsg = NULL;
 lv_obj_t *feedback_ta = NULL;
-lv_obj_t *tcpsock = NULL;
 
 lv_style_t *mystyle = NULL;
 
@@ -85,29 +84,4 @@ void set_back_main(lv_event_t * e)
 {
     show_main();
     lv_obj_del(setwin);
-}
-
-void
- tcp_getlist()
-{
-    send(tcpsock,"getlist",7,0);
-}
-
-//跟指定客户端聊天
-void tcp_chat(char *ip,unsigned short port,char *msg)
-{
-    char allmsg[2048];
-
-    bzero(allmsg,2048);
-
-    //按照原来的通信协议拼接字符串
-    sprintf(allmsg,"chat@%s@%hu@%s",ip,port,msg);
-
-    //发送给服务器
-    send(tcpsock,allmsg,strlen(allmsg),0);
-}
-
-void tcp_close()
-{
-    close(tcpsock);
 }

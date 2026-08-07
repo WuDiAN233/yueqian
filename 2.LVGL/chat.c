@@ -7,7 +7,8 @@ void send_chat_cb(lv_event_t * e)
     const char *msg = lv_textarea_get_text(ta1);
     if(strlen(msg) == 0)
         return;
-    tcp_chat("192.168.131.130", 10000, msg); // 示例IP和端口
+    tcp_test((char *)msg);
+
 }
 
 //群聊发送按钮
@@ -16,8 +17,7 @@ void send_room_cb(lv_event_t * e)
     const char *msg = lv_textarea_get_text(ta1);
     if(strlen(msg) == 0)
         return;
-
-    //stp接入
+    tcp_test((char *)msg);
 }
 
 //搜索聊天记录

@@ -70,5 +70,6 @@ void set_back_login(lv_event_t *e);
 void tcp_getlist();
 void tcp_chat(char *ip,unsigned short port,char *msg);
 void tcp_close();
+void tcp_test(char *msg);
 
 #endif /* MYHEAD_H */

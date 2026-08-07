@@ -66,7 +66,7 @@ int tcp_init()
     struct sockaddr_in serveraddr;
     bzero(&serveraddr,sizeof(serveraddr));
     serveraddr.sin_family=AF_INET;
-    serveraddr.sin_addr.s_addr=inet_addr("192.168.131.130"); //服务器的ip地址
+    serveraddr.sin_addr.s_addr=inet_addr("192.168.3.191"); //服务器的ip地址
     serveraddr.sin_port=htons(10000); //服务器的端口号
 
     //创建tcp套接字
@@ -127,8 +127,15 @@ int tcp_chat(char *ip,unsigned short port,char *msg)
     return 0;
 }
 
+//测试发送消息给服务器
+void tcp_test(char *msg)
+{
+    send(tcpsock,msg,strlen(msg),0);
+}
+
 int tcp_close()
 {
     close(tcpsock);
     return 0;
 }
+
