@@ -8,11 +8,18 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "lvgl/lvgl.h"
 
 /*
     TCP客户端通信
 */
 int tcpsock;
+char chatip[20]={0};
+unsigned short chatport=0;
+lv_obj_t *tcp_list=NULL;
+
+extern lv_obj_t *chatmsg;
+extern void fri_chat_cb(lv_event_t * e);
 
 void *recv_fun(void *arg)
 {
@@ -32,10 +39,18 @@ void *recv_fun(void *arg)
         if(strcmp(p1,"getlist")==0) //服务器发过来的是在线客户端列表
         {
             char *p2;
+            if(tcp_list!=NULL && lv_obj_is_valid(tcp_list))
+                lv_obj_clean(tcp_list);
+
             while((p2=strtok(NULL,"#"))!=NULL)
             {
                 printf("在线的好友：%s\n",p2);
                 //stp接入
+                if(tcp_list!=NULL && lv_obj_is_valid(tcp_list))
+                {
+                    lv_obj_t *bt=lv_list_add_btn(tcp_list,NULL,p2);
+                    lv_obj_add_event_cb(bt,fri_chat_cb,LV_EVENT_CLICKED,NULL);
+                }
             }
         }
 
@@ -46,6 +61,12 @@ void *recv_fun(void *arg)
             char *p3=strtok(NULL,"#"); //真实的信息
             printf("%s发给我的信息：%s\n",p2,p3);
             //stp接入
+            if(chatmsg!=NULL && lv_obj_is_valid(chatmsg))
+            {
+                char allmsg[2048]={0};
+                sprintf(allmsg,"%s\n%s\n",p2,p3);
+                lv_textarea_add_text(chatmsg,allmsg);
+            }
         }
     }
 }
@@ -60,7 +81,7 @@ int tcp_init()
     bzero(&bindaddr,sizeof(bindaddr));
     bindaddr.sin_family=AF_INET;
     bindaddr.sin_addr.s_addr=htonl(INADDR_ANY); //绑定客户端自己的ip地址
-    bindaddr.sin_port=htons(10086); //绑定客户端自己的端口号
+    bindaddr.sin_port=htons(10087); //绑定客户端自己的端口号
 
     //定义ipv4地址结构体存放服务器的ip和端口号
     struct sockaddr_in serveraddr;

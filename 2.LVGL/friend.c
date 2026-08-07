@@ -6,6 +6,21 @@ void fri_chat_cb(lv_event_t * e)
 {
     lv_obj_t *oldwin = setwin;
     //stp接入
+    lv_obj_t *bt=lv_event_get_target(e);
+    lv_obj_t *list=lv_obj_get_parent(bt);
+    const char *info=lv_list_get_btn_text(list,bt);
+    char buf[50]={0};
+    strcpy(buf,info);
+    char *ip=strtok(buf,"@");
+    char *port=strtok(NULL,"@");
+    extern char chatip[20];
+    extern unsigned short chatport;
+    if(ip!=NULL && port!=NULL)
+    {
+        bzero(chatip,20);
+        strcpy(chatip,ip);
+        chatport=atoi(port);
+    }
     show_chat();
     lv_obj_del(oldwin);
 }
@@ -72,7 +87,6 @@ void show_frd()
     lv_obj_set_size(numlb, 210, 40);
     lv_obj_add_style(numlb,mystyle,0);
     lv_label_set_text(numlb, "好友数量：");
-    tcp_getlist();
 
     // 创建好友列表区域
     lv_obj_t * list = lv_list_create(middlewin);
@@ -81,6 +95,9 @@ void show_frd()
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
     //stp接入
+    extern lv_obj_t *tcp_list;
+    tcp_list=list;
+    tcp_getlist();
     // 获取好友之后使用lv_list_add_btn创建好友按钮
     // 好友按钮点击事件使用fri_chat_cb
 

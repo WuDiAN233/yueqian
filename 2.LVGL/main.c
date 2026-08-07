@@ -144,6 +144,11 @@ void connect_ip_cb(lv_event_t * e)
         return;
 
     //stp接入
+    extern char chatip[20];
+    extern unsigned short chatport;
+    bzero(chatip,20);
+    strcpy(chatip,ip);
+    chatport=atoi(port);
     show_chat();
     lv_obj_del(oldwin);
 }

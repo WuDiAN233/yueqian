@@ -7,7 +7,13 @@ void send_chat_cb(lv_event_t * e)
     const char *msg = lv_textarea_get_text(ta1);
     if(strlen(msg) == 0)
         return;
-    tcp_test((char *)msg);
+
+    //stp接入
+    extern char chatip[20];
+    extern unsigned short chatport;
+    if(strlen(chatip)==0 || chatport==0)
+        return;
+    tcp_chat(chatip,chatport,(char *)msg);
 
 }
 
@@ -246,6 +252,9 @@ void show_chat()
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
     //stp接入
+    extern lv_obj_t *tcp_list;
+    tcp_list=list;
+    tcp_getlist();
     //获取好友之后使用lv_list_add_btn创建好友按钮
     //好友按钮点击事件使用fri_chat_cb
 
@@ -256,6 +265,14 @@ void show_chat()
     lv_obj_add_style(lb1,mystyle,0);
     lv_label_set_text(lb1, "chat with friend");
     //stp接入
+    extern char chatip[20];
+    extern unsigned short chatport;
+    if(strlen(chatip)!=0 && chatport!=0)
+    {
+        char info[100]={0};
+        sprintf(info,"%s:%hu",chatip,chatport);
+        lv_label_set_text(lb1,info);
+    }
 
     // 用来显示聊天界面的额外功能 里面有一个文本框 用来搜索聊天记录 有一个按钮用来清空聊天记录 有一个按钮 用来删除好友 
     lv_obj_t * bt1 = lv_btn_create(rightwin); 
@@ -392,7 +409,7 @@ void show_room()
     lv_obj_set_style_border_width(roommsg, 0, 0);
     lv_obj_set_style_bg_color(roommsg, lv_color_hex(0xF5F5F5), 0);
     //stp接入
-   
+
     // 创建输入框：输入要聊天的信息 
     ta1 = lv_textarea_create(rightwin);
     lv_obj_set_pos(ta1, 15, 375);
