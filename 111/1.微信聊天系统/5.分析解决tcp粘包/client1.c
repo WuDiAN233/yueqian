@@ -40,15 +40,15 @@ int main()
 	struct sockaddr_in bindaddr;
 	bzero(&bindaddr,sizeof(bindaddr));
 	bindaddr.sin_family=AF_INET;  //地址协议，IPV4
-	bindaddr.sin_addr.s_addr=inet_addr("192.168.11.4");    //绑定客户端自己的ip地址
-	bindaddr.sin_port=htons(10000);  //客户端要绑定的端口号
+	bindaddr.sin_addr.s_addr=inet_addr("192.168.3.42");    //绑定客户端自己的ip地址
+	bindaddr.sin_port=htons(20000);  //客户端要绑定的端口号
 	
 	//定义ipv4地址结构体变量存放服务器的ip和端口号
 	struct sockaddr_in serveraddr;
 	bzero(&serveraddr,sizeof(serveraddr));
 	serveraddr.sin_family=AF_INET;  //地址协议，IPV4
-	serveraddr.sin_addr.s_addr=inet_addr("192.168.11.4");    //服务器的ip地址
-	serveraddr.sin_port=htons(30000);  //服务器的端口号
+	serveraddr.sin_addr.s_addr=inet_addr("192.168.3.42");    //服务器的ip地址
+	serveraddr.sin_port=htons(10000);  //服务器的端口号
 	
 	//创建tcp套接字--》买手机
 	tcpsock=socket(AF_INET,SOCK_STREAM,0);

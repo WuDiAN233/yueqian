@@ -15,6 +15,13 @@ void send_chat_cb(lv_event_t * e)
         return;
     tcp_chat(chatip,chatport,(char *)msg);
 
+    if(chatmsg!=NULL)
+    {
+        char allmsg[2048]={0};
+        sprintf(allmsg,"me: %s\n",msg);
+        lv_textarea_add_text(chatmsg,allmsg);
+    }
+
 }
 
 //群聊发送按钮
@@ -45,10 +52,7 @@ void clear_chat_record_cb(lv_event_t * e)
 //删除好友
 void delete_friend_cb(lv_event_t * e)
 {
-    lv_obj_t *oldwin = setwin;
     //stp接入
-    show_frd();
-    lv_obj_del(oldwin);
 }
 
 //关闭更多功能弹框
@@ -202,14 +206,8 @@ void show_chat()
     lv_obj_add_event_cb(setwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
 
     //左边导航栏
-    lv_obj_t * leftwin = lv_obj_create(setwin);
-    lv_obj_set_pos(leftwin, 0, 0);
-    lv_obj_set_size(leftwin, 70, 480);
-    lv_obj_set_style_pad_all(leftwin, 0, 0);
-    lv_obj_set_style_border_width(leftwin, 0, 0);
-    lv_obj_set_style_radius(leftwin, 0, 0);
-    lv_obj_set_style_bg_color(leftwin, lv_color_hex(0x2E2E2E), 0);
-
+    create_left_menu(setwin);
+    
     //中间好友列表界面
     lv_obj_t * middlewin = lv_obj_create(setwin);
     lv_obj_set_pos(middlewin, 70, 0);
@@ -226,16 +224,9 @@ void show_chat()
     lv_obj_set_style_pad_all(rightwin, 0, 0);
     lv_obj_set_style_border_width(rightwin, 0, 0);
     lv_obj_set_style_radius(rightwin, 0, 0);
-    lv_obj_set_style_bg_color(rightwin, lv_color_hex(0xFAFAFA), 0);
-
-    //返回按钮
-    lv_obj_t * backbt = lv_btn_create(leftwin);
-    lv_obj_set_pos(backbt, 5, 405);
-    lv_obj_set_size(backbt, 60, 55);
-    lv_obj_t * backlb = lv_label_create(backbt);
-    lv_label_set_text(backlb, "return");
-    lv_obj_center(backlb);
-    lv_obj_add_event_cb(backbt, set_back_main, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* img = lv_img_create(rightwin);
+    LV_IMG_DECLARE(img1_map);
+    lv_img_set_src(img, &img1_map);
 
     //好友搜索输入框
     ta2 = lv_textarea_create(middlewin);

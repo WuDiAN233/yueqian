@@ -39,13 +39,7 @@ void show_frd()
     lv_obj_set_style_border_width(setwin, 0, 0);
 
     //左边导航栏
-    lv_obj_t * leftwin = lv_obj_create(setwin);
-    lv_obj_set_pos(leftwin, 0, 0);
-    lv_obj_set_size(leftwin, 70, 480);
-    lv_obj_set_style_pad_all(leftwin, 0, 0);
-    lv_obj_set_style_border_width(leftwin, 0, 0);
-    lv_obj_set_style_radius(leftwin, 0, 0);
-    lv_obj_set_style_bg_color(leftwin, lv_color_hex(0x2E2E2E), 0);
+    create_left_menu(setwin);
 
     //中间好友列表界面
     lv_obj_t * middlewin = lv_obj_create(setwin);
@@ -63,16 +57,9 @@ void show_frd()
     lv_obj_set_style_pad_all(rightwin, 0, 0);
     lv_obj_set_style_border_width(rightwin, 0, 0);
     lv_obj_set_style_radius(rightwin, 0, 0);
-    lv_obj_set_style_bg_color(rightwin, lv_color_hex(0xFAFAFA), 0);
-
-    //返回按钮
-    lv_obj_t * bt1 = lv_btn_create(leftwin); 
-    lv_obj_set_pos(bt1, 5, 405);
-    lv_obj_set_size(bt1, 60, 55);
-    lv_obj_t * lb2 = lv_label_create(bt1);
-    lv_label_set_text(lb2, "return");
-    lv_obj_center(lb2);
-    lv_obj_add_event_cb(bt1, set_back_main, LV_EVENT_CLICKED, NULL);
+    lv_obj_t* img = lv_img_create(rightwin);
+    LV_IMG_DECLARE(img1_map);
+    lv_img_set_src(img, &img1_map);
 
     // 给标签设置文字 显示好友信息 
     lv_obj_t * lb1 = lv_label_create(middlewin);

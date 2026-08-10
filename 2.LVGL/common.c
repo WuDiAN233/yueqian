@@ -72,6 +72,24 @@ void close_kb_cb(lv_event_t * e)
     }
 }
 
+// 主界面 -> 群聊界面
+void main_go_chat(lv_event_t * e)
+{
+    show_room();
+}
+
+// 主界面 -> 好友界面
+void main_go_frd(lv_event_t * e)
+{
+    show_frd();
+}
+
+// 主界面 -> 设置界面
+void main_go_set(lv_event_t * e)
+{
+    show_set();
+}
+
 // 主界面 -> 登入界面  
 void main_back_log(lv_event_t * e)
 {
@@ -84,4 +102,41 @@ void set_back_main(lv_event_t * e)
 {
     show_main();
     lv_obj_del(setwin);
+}
+
+lv_obj_t *create_left_menu(lv_obj_t *parent)
+{
+    lv_obj_t *leftwin = lv_obj_create(parent);
+        //左边导航栏
+    lv_obj_set_pos(leftwin, 0, 0);
+    lv_obj_set_size(leftwin, 70, 480);
+    lv_obj_set_style_pad_all(leftwin, 0, 0);
+    lv_obj_set_style_border_width(leftwin, 0, 0);
+
+     //创建三个按钮 用来弹出到不同界面
+    lv_obj_t *bt1 = lv_btn_create(leftwin);//聊天场所
+    lv_obj_t *bt2 = lv_btn_create(leftwin);//好友列表
+    lv_obj_t *bt3 = lv_btn_create(leftwin);//设置界面
+    lv_obj_set_pos(bt1, 5, 90);
+    lv_obj_set_pos(bt2, 5, 190);
+    lv_obj_set_pos(bt3, 5, 290);
+    lv_obj_set_size(bt1, 60, 65);
+    lv_obj_set_size(bt2, 60, 65);
+    lv_obj_set_size(bt3, 60, 65);
+    //增加标签
+    lv_obj_t *lb1 = lv_label_create(bt1);
+    lv_obj_t *lb2 = lv_label_create(bt2);
+    lv_obj_t *lb3 = lv_label_create(bt3);
+    lv_label_set_text(lb1, "chatroom");
+    lv_label_set_text(lb2, "personal");
+    lv_label_set_text(lb3, "settings");
+    lv_obj_center(lb1);
+    lv_obj_center(lb2);
+    lv_obj_center(lb3);
+    //增加事件
+    lv_obj_add_event_cb(bt1, main_go_chat, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(bt2, main_go_frd , LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(bt3, main_go_set, LV_EVENT_CLICKED, NULL);
+
+    return leftwin;
 }

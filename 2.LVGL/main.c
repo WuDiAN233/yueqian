@@ -1,25 +1,24 @@
 #include "myhead.h"
 
+extern void tcp_update_lvgl();
+
 
 // 主界面 -> 群聊界面
 void main_go_chat(lv_event_t * e)
 {
     show_room();
-    lv_obj_del(mainwin);
 }
 
 // 主界面 -> 好友界面
 void main_go_frd(lv_event_t * e)
 {
     show_frd();
-    lv_obj_del(mainwin);
 }
 
 // 主界面 -> 设置界面
 void main_go_set(lv_event_t * e)
 {
     show_set();
-    lv_obj_del(mainwin);
 }
 
 //搜索好友
@@ -143,7 +142,6 @@ void connect_ip_cb(lv_event_t * e)
     if(strlen(ip) == 0 || strlen(port) == 0)
         return;
 
-    //stp接入
     extern char chatip[20];
     extern unsigned short chatport;
     bzero(chatip,20);
@@ -160,7 +158,6 @@ void search_account_cb(lv_event_t * e)
     if(strlen(msg) == 0)
         return;
 
-    //stp接入
 }
 
 //通过ip连接的界面
@@ -332,14 +329,7 @@ void show_main(void)
     lv_obj_add_event_cb(mainwin, close_add_cb, LV_EVENT_CLICKED, NULL);
 
     //左边导航栏
-    lv_obj_t * leftwin = lv_obj_create(mainwin);
-    lv_obj_set_pos(leftwin, 0, 0);
-    lv_obj_set_size(leftwin, 70, 480);
-    lv_obj_set_style_pad_all(leftwin, 0, 0);
-    lv_obj_set_style_border_width(leftwin, 0, 0);
-    lv_obj_set_style_radius(leftwin, 0, 0);
-    lv_obj_set_style_bg_color(leftwin, lv_color_hex(0x2E2E2E), 0);
-
+    create_left_menu(setwin);
     //中间聊天列表界面
     lv_obj_t * middlewin = lv_obj_create(mainwin);
     lv_obj_set_pos(middlewin, 70, 0);
@@ -356,7 +346,9 @@ void show_main(void)
     lv_obj_set_style_pad_all(rightwin, 0, 0);
     lv_obj_set_style_border_width(rightwin, 0, 0);
     lv_obj_set_style_radius(rightwin, 0, 0);
-    lv_obj_set_style_bg_color(rightwin, lv_color_hex(0xFAFAFA), 0);
+    lv_obj_t* img = lv_img_create(rightwin);
+    LV_IMG_DECLARE(img1_map);
+    lv_img_set_src(img, &img1_map);
 
     //搜索界面 
     ta1 = lv_textarea_create(middlewin);
@@ -395,30 +387,6 @@ void show_main(void)
     //stp接入
     //获取聊天列表之后使用lv_list_add_btn创建聊天按钮
 
-    //创建三个按钮 用来弹出到不同界面
-    lv_obj_t *bt1 = lv_btn_create(leftwin);//聊天场所
-    lv_obj_t *bt2 = lv_btn_create(leftwin);//好友列表
-    lv_obj_t *bt3 = lv_btn_create(leftwin);//设置界面
-    lv_obj_set_pos(bt1, 5, 90);
-    lv_obj_set_pos(bt2, 5, 190);
-    lv_obj_set_pos(bt3, 5, 290);
-    lv_obj_set_size(bt1, 60, 65);
-    lv_obj_set_size(bt2, 60, 65);
-    lv_obj_set_size(bt3, 60, 65);
-    //增加标签
-    lv_obj_t *lb1 = lv_label_create(bt1);
-    lv_obj_t *lb2 = lv_label_create(bt2);
-    lv_obj_t *lb3 = lv_label_create(bt3);
-    lv_label_set_text(lb1, "chatroom");
-    lv_label_set_text(lb2, "personal");
-    lv_label_set_text(lb3, "settings");
-    lv_obj_center(lb1);
-    lv_obj_center(lb2);
-    lv_obj_center(lb3);
-    //增加事件
-    lv_obj_add_event_cb(bt1, main_go_chat, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(bt2, main_go_frd , LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(bt3, main_go_set, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *title = lv_label_create(rightwin);
     lv_obj_set_pos(title, 40, 170);
@@ -471,6 +439,7 @@ int main(void)
 
     while(1)
     {
+        tcp_update_lvgl();
         lv_timer_handler();
         usleep(5000);
     }

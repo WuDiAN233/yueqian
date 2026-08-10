@@ -58,13 +58,7 @@ void show_set()
     lv_obj_set_style_border_width(setwin, 0, 0);
 
     //左边导航栏
-    lv_obj_t * leftwin = lv_obj_create(setwin);
-    lv_obj_set_pos(leftwin, 0, 0);
-    lv_obj_set_size(leftwin, 70, 480);
-    lv_obj_set_style_pad_all(leftwin, 0, 0);
-    lv_obj_set_style_border_width(leftwin, 0, 0);
-    lv_obj_set_style_radius(leftwin, 0, 0);
-    lv_obj_set_style_bg_color(leftwin, lv_color_hex(0x2E2E2E), 0);
+    create_left_menu(setwin);
 
     //中间设置列表界面
     lv_obj_t * middlewin = lv_obj_create(setwin);
@@ -83,15 +77,6 @@ void show_set()
     lv_obj_set_style_border_width(rightwin, 0, 0);
     lv_obj_set_style_radius(rightwin, 0, 0);
     lv_obj_set_style_bg_color(rightwin, lv_color_hex(0xFAFAFA), 0);
-
-    //返回按钮
-    lv_obj_t * bt3 = lv_btn_create(leftwin); 
-    lv_obj_set_pos(bt3, 5, 405);
-    lv_obj_set_size(bt3, 60, 55);
-    lv_obj_t * lb4 = lv_label_create(bt3);
-    lv_label_set_text(lb4, "return");
-    lv_obj_center(lb4);
-    lv_obj_add_event_cb(bt3, set_back_main, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * lb1 = lv_label_create(middlewin);
     lv_obj_set_pos(lb1, 10, 20);
