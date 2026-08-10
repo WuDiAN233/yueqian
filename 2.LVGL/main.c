@@ -3,24 +3,6 @@
 extern void tcp_update_lvgl();
 
 
-// 主界面 -> 群聊界面
-void main_go_chat(lv_event_t * e)
-{
-    show_room();
-}
-
-// 主界面 -> 好友界面
-void main_go_frd(lv_event_t * e)
-{
-    show_frd();
-}
-
-// 主界面 -> 设置界面
-void main_go_set(lv_event_t * e)
-{
-    show_set();
-}
-
 //搜索好友
 void search_main_cb(lv_event_t * e)
 {
