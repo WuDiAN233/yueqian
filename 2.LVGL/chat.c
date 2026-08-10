@@ -8,7 +8,6 @@ void send_chat_cb(lv_event_t * e)
     if(strlen(msg) == 0)
         return;
 
-    //stp接入
     extern char chatip[20];
     extern unsigned short chatport;
     if(strlen(chatip)==0 || chatport==0)

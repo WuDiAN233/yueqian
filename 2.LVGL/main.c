@@ -34,7 +34,6 @@ void add_account_cb(lv_event_t * e)
 {
     addwin = NULL;
     show_add_account();
-    lv_obj_del(mainwin);
 }
 
 //+功能弹框 -> IP连接界面
@@ -42,7 +41,6 @@ void add_ip_cb(lv_event_t * e)
 {
     addwin = NULL;
     show_ip_connect();
-    lv_obj_del(mainwin);
 }
 
 //+功能弹框 -> 发起群聊界面
@@ -50,7 +48,6 @@ void add_room_cb(lv_event_t * e)
 {
     addwin = NULL;
     show_choose_room();
-    lv_obj_del(mainwin);
 }
 
 // 发起群聊确认按钮
@@ -303,6 +300,9 @@ void show_main(void)
     morewin = NULL;
     chatmsg = NULL;
     roommsg = NULL;
+    chat_page = NULL;
+    frd_page = NULL;
+    set_page = NULL;
     mainwin = lv_obj_create(NULL);
     lv_obj_set_size(mainwin, 800, 480);
     lv_obj_set_style_pad_all(mainwin, 0, 0);
@@ -310,10 +310,13 @@ void show_main(void)
     lv_obj_add_event_cb(mainwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(mainwin, close_add_cb, LV_EVENT_CLICKED, NULL);
 
-    //左边导航栏
-    create_left_menu(setwin);
+    chat_page = lv_obj_create(mainwin);
+    lv_obj_set_size(chat_page, 800, 480);
+    lv_obj_set_style_pad_all(chat_page, 0, 0);
+    lv_obj_set_style_border_width(chat_page, 0, 0);
+
     //中间聊天列表界面
-    lv_obj_t * middlewin = lv_obj_create(mainwin);
+    lv_obj_t * middlewin = lv_obj_create(chat_page);
     lv_obj_set_pos(middlewin, 70, 0);
     lv_obj_set_size(middlewin, 230, 480);
     lv_obj_set_style_pad_all(middlewin, 0, 0);
@@ -322,7 +325,7 @@ void show_main(void)
     lv_obj_set_style_bg_color(middlewin, lv_color_hex(0xF2F2F2), 0);
 
     //右边聊天内容界面
-    lv_obj_t * rightwin = lv_obj_create(mainwin);
+    lv_obj_t * rightwin = lv_obj_create(chat_page);
     lv_obj_set_pos(rightwin, 300, 0);
     lv_obj_set_size(rightwin, 500, 480);
     lv_obj_set_style_pad_all(rightwin, 0, 0);
@@ -375,6 +378,16 @@ void show_main(void)
     lv_obj_set_size(title, 420, 100);
     lv_obj_add_style(title, mystyle, 0);
     lv_label_set_text(title, "Welcome chat room");
+
+    show_frd();
+    show_set();
+
+    lv_obj_clear_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+
+    //左边导航栏
+    create_left_menu(mainwin);
 
     lv_scr_load(mainwin);
 }

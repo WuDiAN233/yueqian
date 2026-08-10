@@ -7,6 +7,9 @@ lv_obj_t *ta2 = NULL;
 lv_obj_t *loginwin = NULL;
 lv_obj_t *mainwin = NULL;
 lv_obj_t *setwin = NULL;
+lv_obj_t *chat_page = NULL;
+lv_obj_t *frd_page = NULL;
+lv_obj_t *set_page = NULL;
 
 lv_obj_t *addwin = NULL;
 lv_obj_t *morewin = NULL;
@@ -72,22 +75,58 @@ void close_kb_cb(lv_event_t * e)
     }
 }
 
-// 主界面 -> 群聊界面
+// 主界面 -> 聊天界面
 void main_go_chat(lv_event_t * e)
 {
-    show_room();
+    lv_obj_t *oldwin = lv_scr_act();
+    lv_obj_clear_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(oldwin != mainwin)
+    {
+        lv_scr_load(mainwin);
+        lv_obj_del(oldwin);
+        setwin = NULL;
+        morewin = NULL;
+        chatmsg = NULL;
+        roommsg = NULL;
+    }
 }
 
 // 主界面 -> 好友界面
 void main_go_frd(lv_event_t * e)
 {
-    show_frd();
+    lv_obj_t *oldwin = lv_scr_act();
+    lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(oldwin != mainwin)
+    {
+        lv_scr_load(mainwin);
+        lv_obj_del(oldwin);
+        setwin = NULL;
+        morewin = NULL;
+        chatmsg = NULL;
+        roommsg = NULL;
+    }
 }
 
 // 主界面 -> 设置界面
 void main_go_set(lv_event_t * e)
 {
-    show_set();
+    lv_obj_t *oldwin = lv_scr_act();
+    lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(oldwin != mainwin)
+    {
+        lv_scr_load(mainwin);
+        lv_obj_del(oldwin);
+        setwin = NULL;
+        morewin = NULL;
+        chatmsg = NULL;
+        roommsg = NULL;
+    }
 }
 
 // 主界面 -> 登入界面  
@@ -100,8 +139,12 @@ void main_back_log(lv_event_t * e)
 // 其他功能界面 -> 主界面
 void set_back_main(lv_event_t * e)
 {
-    show_main();
+    lv_scr_load(mainwin);
     lv_obj_del(setwin);
+    setwin = NULL;
+    morewin = NULL;
+    chatmsg = NULL;
+    roommsg = NULL;
 }
 
 lv_obj_t *create_left_menu(lv_obj_t *parent)

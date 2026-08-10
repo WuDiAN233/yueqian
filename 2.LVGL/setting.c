@@ -6,15 +6,13 @@ void set_back_login(lv_event_t * e)
 {
     //stp接入
     show_login();
-    lv_obj_del(setwin);
+    lv_obj_del(mainwin);
 }
 
 //设置界面 -> 反馈界面
 void set_back_feedback_cb(lv_event_t * e)
 {
-    lv_obj_t *oldwin = setwin;
     show_feedback();
-    lv_obj_del(oldwin);
 }
 
 //反馈界面 -> 设置界面 
@@ -22,7 +20,9 @@ void feedback_back_set_cb(lv_event_t * e)
 {
     lv_obj_t *oldwin = setwin;
     show_set();
+    lv_scr_load(mainwin);
     lv_obj_del(oldwin);
+    setwin = NULL;
 }
 
 //保存反馈内容到记事本按钮
@@ -52,16 +52,23 @@ void show_set()
         lv_keyboard_set_textarea(kb1, NULL);
         lv_obj_add_flag(kb1, LV_OBJ_FLAG_HIDDEN);
     }
-    setwin = lv_obj_create(NULL);
-    lv_obj_set_size(setwin, 800, 480);
-    lv_obj_set_style_pad_all(setwin, 0, 0);
-    lv_obj_set_style_border_width(setwin, 0, 0);
+    if(set_page != NULL)
+    {
+        if(chat_page != NULL)
+            lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+        if(frd_page != NULL)
+            lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
 
-    //左边导航栏
-    create_left_menu(setwin);
+    set_page = lv_obj_create(mainwin);
+    lv_obj_set_size(set_page, 800, 480);
+    lv_obj_set_style_pad_all(set_page, 0, 0);
+    lv_obj_set_style_border_width(set_page, 0, 0);
 
     //中间设置列表界面
-    lv_obj_t * middlewin = lv_obj_create(setwin);
+    lv_obj_t * middlewin = lv_obj_create(set_page);
     lv_obj_set_pos(middlewin, 70, 0);
     lv_obj_set_size(middlewin, 230, 480);
     lv_obj_set_style_pad_all(middlewin, 0, 0);
@@ -70,7 +77,7 @@ void show_set()
     lv_obj_set_style_bg_color(middlewin, lv_color_hex(0xF2F2F2), 0);
 
     //右边设置内容界面
-    lv_obj_t * rightwin = lv_obj_create(setwin);
+    lv_obj_t * rightwin = lv_obj_create(set_page);
     lv_obj_set_pos(rightwin, 300, 0);
     lv_obj_set_size(rightwin, 500, 480);
     lv_obj_set_style_pad_all(rightwin, 0, 0);
@@ -110,8 +117,11 @@ void show_set()
     lv_obj_add_style(title,mystyle,0);
     lv_label_set_text(title, "settings");
 
-    //自己主动加载设置界面
-    lv_scr_load(setwin);
+    if(chat_page != NULL)
+        lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    if(frd_page != NULL)
+        lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(set_page, LV_OBJ_FLAG_HIDDEN);
 }
 
 //创建反馈界面

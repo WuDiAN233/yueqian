@@ -4,7 +4,6 @@
 //好友界面 -> 聊天界面
 void fri_chat_cb(lv_event_t * e)
 {
-    lv_obj_t *oldwin = setwin;
     //stp接入
     lv_obj_t *bt=lv_event_get_target(e);
     lv_obj_t *list=lv_obj_get_parent(bt);
@@ -22,7 +21,6 @@ void fri_chat_cb(lv_event_t * e)
         chatport=atoi(port);
     }
     show_chat();
-    lv_obj_del(oldwin);
 }
 
 //创建好友界面 用来展示有多少好友 ,同时点击好友可以进入聊天界面
@@ -33,16 +31,23 @@ void show_frd()
         lv_keyboard_set_textarea(kb1, NULL);
         lv_obj_add_flag(kb1, LV_OBJ_FLAG_HIDDEN);
     }
-    setwin = lv_obj_create(NULL);
-    lv_obj_set_size(setwin, 800, 480);
-    lv_obj_set_style_pad_all(setwin, 0, 0);
-    lv_obj_set_style_border_width(setwin, 0, 0);
+    if(frd_page != NULL)
+    {
+        if(chat_page != NULL)
+            lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+        if(set_page != NULL)
+            lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
 
-    //左边导航栏
-    create_left_menu(setwin);
+    frd_page = lv_obj_create(mainwin);
+    lv_obj_set_size(frd_page, 800, 480);
+    lv_obj_set_style_pad_all(frd_page, 0, 0);
+    lv_obj_set_style_border_width(frd_page, 0, 0);
 
     //中间好友列表界面
-    lv_obj_t * middlewin = lv_obj_create(setwin);
+    lv_obj_t * middlewin = lv_obj_create(frd_page);
     lv_obj_set_pos(middlewin, 70, 0);
     lv_obj_set_size(middlewin, 230, 480);
     lv_obj_set_style_pad_all(middlewin, 0, 0);
@@ -51,7 +56,7 @@ void show_frd()
     lv_obj_set_style_bg_color(middlewin, lv_color_hex(0xF2F2F2), 0);
 
     //右边好友信息界面
-    lv_obj_t * rightwin = lv_obj_create(setwin);
+    lv_obj_t * rightwin = lv_obj_create(frd_page);
     lv_obj_set_pos(rightwin, 300, 0);
     lv_obj_set_size(rightwin, 500, 480);
     lv_obj_set_style_pad_all(rightwin, 0, 0);
@@ -94,6 +99,9 @@ void show_frd()
     lv_obj_add_style(title,mystyle,0);
     lv_label_set_text(title, "personal");
 
-    //自己主动加载好友界面
-    lv_scr_load(setwin);
+    if(chat_page != NULL)
+        lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    if(set_page != NULL)
+        lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
 }

@@ -41,6 +41,9 @@ extern lv_obj_t * ta2; // 文本输入框的地址
 extern lv_obj_t *loginwin; // 登录界面的地址
 extern lv_obj_t *mainwin;   // 主界面
 extern lv_obj_t *setwin;   // 其他功能界面的地址
+extern lv_obj_t *chat_page; // 聊天界面
+extern lv_obj_t *frd_page;  // 好友界面
+extern lv_obj_t *set_page;  // 设置界面
 extern lv_obj_t *addwin;   // 添加功能弹框
 extern lv_obj_t *morewin;  // 更多功能弹框
 extern lv_obj_t *chatmsg;  // 单聊消息显示框
