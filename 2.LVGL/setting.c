@@ -4,9 +4,21 @@
 //设置界面 -> 登录界面
 void set_back_login(lv_event_t * e)
 {
-    //stp接入
+    lv_obj_t *oldwin = mainwin;
+    tcp_logout();
     show_login();
-    lv_obj_del(mainwin);
+    lv_obj_del_async(oldwin);
+    mainwin = NULL;
+    chat_page = NULL;
+    frd_page = NULL;
+    set_page = NULL;
+    frd_list = NULL;
+    main_list = NULL;
+    chat_list = NULL;
+    room_list = NULL;
+    search_result = NULL;
+    search_add_btn = NULL;
+    tcp_list = NULL;
 }
 
 //设置界面 -> 反馈界面
@@ -20,8 +32,8 @@ void feedback_back_set_cb(lv_event_t * e)
 {
     lv_obj_t *oldwin = setwin;
     show_set();
-    lv_scr_load(mainwin);
-    lv_obj_del(oldwin);
+        lv_scr_load(mainwin);
+    lv_obj_del_async(oldwin);
     setwin = NULL;
 }
 
@@ -63,6 +75,7 @@ void show_set()
     }
 
     set_page = lv_obj_create(mainwin);
+    lv_obj_move_background(set_page);
     lv_obj_set_size(set_page, 800, 480);
     lv_obj_set_style_pad_all(set_page, 0, 0);
     lv_obj_set_style_border_width(set_page, 0, 0);

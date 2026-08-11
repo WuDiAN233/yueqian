@@ -7,10 +7,7 @@ extern void tcp_update_lvgl();
 void search_main_cb(lv_event_t * e)
 {
     const char *msg = lv_textarea_get_text(ta1);
-    if(strlen(msg) == 0)
-        return;
-
-    //stp接入
+    tcp_filter_friends(msg);
 }
 
 //关闭添加功能弹框
@@ -24,7 +21,7 @@ void close_add_cb(lv_event_t * e)
 
     if(addwin != NULL)
     {
-        lv_obj_del(addwin);
+        lv_obj_del_async(addwin);
         addwin = NULL;
     }
 }
@@ -32,31 +29,75 @@ void close_add_cb(lv_event_t * e)
 //+功能弹框 -> 输入账号添加好友界面
 void add_account_cb(lv_event_t * e)
 {
+    lv_obj_t *oldwin = addwin;
     addwin = NULL;
     show_add_account();
+    lv_obj_del_async(oldwin);
 }
 
 //+功能弹框 -> IP连接界面
 void add_ip_cb(lv_event_t * e)
 {
+    lv_obj_t *oldwin = addwin;
     addwin = NULL;
     show_ip_connect();
+    lv_obj_del_async(oldwin);
 }
 
 //+功能弹框 -> 发起群聊界面
 void add_room_cb(lv_event_t * e)
 {
+    lv_obj_t *oldwin = addwin;
     addwin = NULL;
     show_choose_room();
+    lv_obj_del_async(oldwin);
 }
 
 // 发起群聊确认按钮
 void choose_room_ok_cb(lv_event_t * e)
 {
     lv_obj_t *oldwin = setwin;
-    //stp接入
+    int i;
+    int count;
+    roommembernum=0;
+    bzero(roomtargets,1024);
+    bzero(roommemberbuf,sizeof(roommemberbuf));
+
+    if(room_list==NULL || !lv_obj_is_valid(room_list))
+        return;
+
+    count=lv_obj_get_child_cnt(room_list);
+    for(i=0;i<count && roommembernum<20;i++)
+    {
+        lv_obj_t *checkbox=lv_obj_get_child(room_list,i);
+        const char *info;
+        char name[64]={0};
+        char ip[20]={0};
+        unsigned short port=0;
+        char target[40]={0};
+
+        if(!lv_obj_has_state(checkbox,LV_STATE_CHECKED))
+            continue;
+        info=lv_checkbox_get_text(checkbox);
+        if(info==NULL || sscanf(info,"%63[^@]@%19[^@]@%hu",name,ip,&port)!=3)
+            continue;
+
+        snprintf(roommemberbuf[roommembernum],80,"%s@%s@%hu",name,ip,port);
+        snprintf(target,sizeof(target),"%s:%hu",ip,port);
+        if(strlen(roomtargets)+strlen(target)+2<1024)
+        {
+            if(strlen(roomtargets)!=0)
+                strcat(roomtargets,",");
+            strcat(roomtargets,target);
+            roommembernum++;
+        }
+    }
+
+    if(roommembernum==0)
+        return;
     show_room();
-    lv_obj_del(oldwin);
+    room_list=NULL;
+    lv_obj_del_async(oldwin);
 }
 
 //点击加号弹出添加功能 
@@ -121,13 +162,12 @@ void connect_ip_cb(lv_event_t * e)
     if(strlen(ip) == 0 || strlen(port) == 0)
         return;
 
-    extern char chatip[20];
-    extern unsigned short chatport;
     bzero(chatip,20);
-    strcpy(chatip,ip);
+    snprintf(chatip,20,"%s",ip);
     chatport=atoi(port);
+    bzero(chatname,64);
     show_chat();
-    lv_obj_del(oldwin);
+    lv_obj_del_async(oldwin);
 }
 
 //搜索已经注册的账号添加好友按钮
@@ -137,6 +177,21 @@ void search_account_cb(lv_event_t * e)
     if(strlen(msg) == 0)
         return;
 
+    lv_label_set_text(search_result,"正在搜索...");
+    lv_obj_add_flag(search_add_btn,LV_OBJ_FLAG_HIDDEN);
+    if(tcp_search(msg)!=0)
+        lv_label_set_text(search_result,"服务器未连接");
+}
+
+//搜索结果添加好友按钮
+void add_search_result_cb(lv_event_t * e)
+{
+    if(strlen(search_account_name)==0)
+        return;
+
+    lv_label_set_text(search_result,"正在添加...");
+    lv_obj_add_flag(search_add_btn,LV_OBJ_FLAG_HIDDEN);
+    tcp_addfriend(search_account_name);
 }
 
 //通过ip连接的界面
@@ -229,7 +284,21 @@ void show_add_account()
     lv_obj_t * result = lv_obj_create(setwin);
     lv_obj_set_pos(result, 120, 340);
     lv_obj_set_size(result, 560, 80);
-    //stp接入
+    search_result = lv_label_create(result);
+    lv_obj_set_pos(search_result, 5, 5);
+    lv_obj_set_size(search_result, 390, 45);
+    lv_obj_add_style(search_result,mystyle,0);
+    lv_label_set_text(search_result, "");
+
+    search_add_btn = lv_btn_create(result);
+    lv_obj_set_pos(search_add_btn, 420, 5);
+    lv_obj_set_size(search_add_btn, 105, 45);
+    lv_obj_t *addlb = lv_label_create(search_add_btn);
+    lv_obj_add_style(addlb,mystyle,0);
+    lv_label_set_text(addlb, "添加");
+    lv_obj_center(addlb);
+    lv_obj_add_event_cb(search_add_btn, add_search_result_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_flag(search_add_btn,LV_OBJ_FLAG_HIDDEN);
 
     lv_obj_t * bt2 = lv_btn_create(setwin); 
     lv_obj_set_pos(bt2, 30, 30);
@@ -264,7 +333,8 @@ void show_choose_room()
     lv_obj_t * list = lv_obj_create(setwin);
     lv_obj_set_pos(list, 50, 100);
     lv_obj_set_size(list, 700, 280);
-    //stp接入
+    room_list=list;
+    tcp_getfriends();
     // 获取好友之后在这里创建复选框
 
     lv_obj_t * bt1 = lv_btn_create(setwin); 
@@ -303,6 +373,14 @@ void show_main(void)
     chat_page = NULL;
     frd_page = NULL;
     set_page = NULL;
+    frd_list = NULL;
+    main_list = NULL;
+    chat_list = NULL;
+    room_list = NULL;
+    login_message = NULL;
+    search_result = NULL;
+    search_add_btn = NULL;
+    tcp_list = NULL;
     mainwin = lv_obj_create(NULL);
     lv_obj_set_size(mainwin, 800, 480);
     lv_obj_set_style_pad_all(mainwin, 0, 0);
@@ -347,7 +425,7 @@ void show_main(void)
     lv_obj_add_event_cb(ta1, ta1_cb, LV_EVENT_FOCUSED, NULL);
     //输入后弹出相关人员信息
     //点击可以进入聊天界面
-    //stp接入
+    lv_obj_add_event_cb(ta1, search_main_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     //创建添加好友按钮
     lv_obj_t *bt4 = lv_btn_create(middlewin);
@@ -369,7 +447,8 @@ void show_main(void)
     lv_obj_set_size(list, 230, 405);
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
-    //stp接入
+    main_list=list;
+    tcp_getfriends();
     //获取聊天列表之后使用lv_list_add_btn创建聊天按钮
 
 
@@ -379,12 +458,7 @@ void show_main(void)
     lv_obj_add_style(title, mystyle, 0);
     lv_label_set_text(title, "Welcome chat room");
 
-    show_frd();
-    show_set();
-
     lv_obj_clear_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
 
     //左边导航栏
     create_left_menu(mainwin);

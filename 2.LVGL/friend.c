@@ -4,23 +4,34 @@
 //好友界面 -> 聊天界面
 void fri_chat_cb(lv_event_t * e)
 {
-    //stp接入
-    lv_obj_t *bt=lv_event_get_target(e);
+    //读取按钮里的IP和端口，进入对应聊天界面
+    lv_obj_t *oldwin=lv_scr_act();
+    lv_obj_t *bt=lv_event_get_current_target(e);
     lv_obj_t *list=lv_obj_get_parent(bt);
     const char *info=lv_list_get_btn_text(list,bt);
-    char buf[50]={0};
-    strcpy(buf,info);
-    char *ip=strtok(buf,"@");
-    char *port=strtok(NULL,"@");
-    extern char chatip[20];
-    extern unsigned short chatport;
-    if(ip!=NULL && port!=NULL)
+    char name[64]={0};
+    char ip[20]={0};
+    unsigned short port=0;
+
+    if(info==NULL)
+        return;
+
+    if(sscanf(info,"%63[^@]@%19[^@]@%hu",name,ip,&port)!=3)
     {
-        bzero(chatip,20);
-        strcpy(chatip,ip);
-        chatport=atoi(port);
+        bzero(name,sizeof(name));
+        if(sscanf(info,"%19[^@]@%hu",ip,&port)!=2)
+            return;
     }
+
+    bzero(chatip,20);
+    snprintf(chatip,20,"%s",ip);
+    chatport=port;
+    bzero(chatname,64);
+    snprintf(chatname,64,"%s",name);
     show_chat();
+
+    if(oldwin!=mainwin)
+        lv_obj_del_async(oldwin);
 }
 
 //创建好友界面 用来展示有多少好友 ,同时点击好友可以进入聊天界面
@@ -33,6 +44,7 @@ void show_frd()
     }
     if(frd_page != NULL)
     {
+        tcp_getlist();
         if(chat_page != NULL)
             lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
@@ -42,6 +54,7 @@ void show_frd()
     }
 
     frd_page = lv_obj_create(mainwin);
+    lv_obj_move_background(frd_page);
     lv_obj_set_size(frd_page, 800, 480);
     lv_obj_set_style_pad_all(frd_page, 0, 0);
     lv_obj_set_style_border_width(frd_page, 0, 0);
@@ -86,9 +99,8 @@ void show_frd()
     lv_obj_set_size(list, 230, 370);
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
-    //stp接入
-    extern lv_obj_t *tcp_list;
-    tcp_list=list;
+    //获取服务器上的在线客户端
+    frd_list=list;
     tcp_getlist();
     // 获取好友之后使用lv_list_add_btn创建好友按钮
     // 好友按钮点击事件使用fri_chat_cb

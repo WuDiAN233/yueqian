@@ -1,5 +1,50 @@
 #include "myhead.h"
 
+//聊天记录文件名
+static void get_record_name(int room,char *filename,int size)
+{
+    mkdir("./records",0755);
+
+    if(room)
+        snprintf(filename,size,"./records/room.txt");
+    else
+        snprintf(filename,size,"./records/chat.txt");
+}
+
+//保存聊天记录
+void chat_record_append(int room,const char *line)
+{
+    char filename[160]={0};
+    FILE *fp;
+    get_record_name(room,filename,sizeof(filename));
+    fp=fopen(filename,"a+");
+    if(fp==NULL)
+        return;
+    fprintf(fp,"%s",line);
+    fclose(fp);
+}
+
+//显示聊天记录
+static void load_chat_record(int room,const char *keyword,lv_obj_t *msgbox)
+{
+    char filename[160]={0};
+    char line[2048]={0};
+    FILE *fp;
+    if(msgbox==NULL || !lv_obj_is_valid(msgbox))
+        return;
+
+    lv_textarea_set_text(msgbox,"");
+    get_record_name(room,filename,sizeof(filename));
+    fp=fopen(filename,"r");
+    if(fp==NULL)
+        return;
+    while(fgets(line,sizeof(line),fp)!=NULL)
+    {
+        if(keyword==NULL || strlen(keyword)==0 || strstr(line,keyword)!=NULL)
+            lv_textarea_add_text(msgbox,line);
+    }
+    fclose(fp);
+}
 
 //聊天发送按钮
 void send_chat_cb(lv_event_t * e)
@@ -17,9 +62,11 @@ void send_chat_cb(lv_event_t * e)
     if(chatmsg!=NULL)
     {
         char allmsg[2048]={0};
-        sprintf(allmsg,"me: %s\n",msg);
+        snprintf(allmsg,sizeof(allmsg),"me: %s\n",msg);
         lv_textarea_add_text(chatmsg,allmsg);
+        chat_record_append(0,allmsg);
     }
+    lv_textarea_set_text(ta1,"");
 
 }
 
@@ -29,13 +76,27 @@ void send_room_cb(lv_event_t * e)
     const char *msg = lv_textarea_get_text(ta1);
     if(strlen(msg) == 0)
         return;
-    tcp_test((char *)msg);
+    if(strlen(roomtargets)==0)
+        return;
+    tcp_room(roomtargets,msg);
+    if(roommsg!=NULL)
+    {
+        char allmsg[2048]={0};
+        snprintf(allmsg,sizeof(allmsg),"me: %s\n",msg);
+        lv_textarea_add_text(roommsg,allmsg);
+        chat_record_append(1,allmsg);
+    }
+    lv_textarea_set_text(ta1,"");
 }
 
 //搜索聊天记录
 void search_chat_record_cb(lv_event_t * e)
 {
-    //stp接入
+    const char *keyword=lv_textarea_get_text(ta2);
+    if(chatmsg!=NULL)
+        load_chat_record(0,keyword,chatmsg);
+    if(roommsg!=NULL)
+        load_chat_record(1,keyword,roommsg);
 }
 
 //清空聊天记录
@@ -45,13 +106,29 @@ void clear_chat_record_cb(lv_event_t * e)
         lv_textarea_set_text(chatmsg, "");
     if(roommsg != NULL)
         lv_textarea_set_text(roommsg, "");
-    //stp接入
+    char filename[160]={0};
+    if(chatmsg!=NULL)
+    {
+        get_record_name(0,filename,sizeof(filename));
+        unlink(filename);
+    }
+    if(roommsg!=NULL)
+    {
+        get_record_name(1,filename,sizeof(filename));
+        unlink(filename);
+    }
 }
 
 //删除好友
 void delete_friend_cb(lv_event_t * e)
 {
-    //stp接入
+    if(strlen(chatname)==0)
+    {
+        if(chatmsg!=NULL)
+            lv_textarea_add_text(chatmsg,"该连接没有好友账号\n");
+        return;
+    }
+    tcp_delfriend(chatname);
 }
 
 //关闭更多功能弹框
@@ -67,7 +144,7 @@ void close_more_cb(lv_event_t * e)
     {
         lv_keyboard_set_textarea(kb1, NULL);
         lv_obj_add_flag(kb1, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_del(morewin);
+        lv_obj_del_async(morewin);
         morewin = NULL;
     }
 }
@@ -198,18 +275,18 @@ void show_chat()
     }
     morewin = NULL;
     roommsg = NULL;
-    setwin = lv_obj_create(NULL);
-    lv_obj_set_size(setwin, 800, 480);
+    if(setwin!=NULL && lv_obj_is_valid(setwin) && lv_obj_get_parent(setwin)==mainwin)
+        lv_obj_del_async(setwin);
+    setwin = lv_obj_create(mainwin);
+    lv_obj_set_pos(setwin,70,0);
+    lv_obj_set_size(setwin, 730, 480);
     lv_obj_set_style_pad_all(setwin, 0, 0);
     lv_obj_set_style_border_width(setwin, 0, 0);
     lv_obj_add_event_cb(setwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
-
-    //左边导航栏
-    create_left_menu(setwin);
     
     //中间好友列表界面
     lv_obj_t * middlewin = lv_obj_create(setwin);
-    lv_obj_set_pos(middlewin, 70, 0);
+    lv_obj_set_pos(middlewin, 0, 0);
     lv_obj_set_size(middlewin, 230, 480);
     lv_obj_set_style_pad_all(middlewin, 0, 0);
     lv_obj_set_style_border_width(middlewin, 0, 0);
@@ -218,7 +295,7 @@ void show_chat()
 
     //右边聊天界面
     lv_obj_t * rightwin = lv_obj_create(setwin);
-    lv_obj_set_pos(rightwin, 300, 0);
+    lv_obj_set_pos(rightwin, 230, 0);
     lv_obj_set_size(rightwin, 500, 480);
     lv_obj_set_style_pad_all(rightwin, 0, 0);
     lv_obj_set_style_border_width(rightwin, 0, 0);
@@ -241,12 +318,8 @@ void show_chat()
     lv_obj_set_size(list, 230, 405);
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
-    //stp接入
-    extern lv_obj_t *tcp_list;
-    tcp_list=list;
-    tcp_getlist();
-    //获取好友之后使用lv_list_add_btn创建好友按钮
-    //好友按钮点击事件使用fri_chat_cb
+    chat_list=list;
+    tcp_getfriends();
 
     //聊天标题 显示好友信息
     lv_obj_t * lb1 = lv_label_create(rightwin);
@@ -254,13 +327,13 @@ void show_chat()
     lv_obj_set_size(lb1, 400, 45);
     lv_obj_add_style(lb1,mystyle,0);
     lv_label_set_text(lb1, "chat with friend");
-    //stp接入
-    extern char chatip[20];
-    extern unsigned short chatport;
     if(strlen(chatip)!=0 && chatport!=0)
     {
         char info[100]={0};
-        sprintf(info,"%s:%hu",chatip,chatport);
+        if(strlen(chatname)!=0)
+            snprintf(info,sizeof(info),"%s  %s:%hu",chatname,chatip,chatport);
+        else
+            snprintf(info,sizeof(info),"%s:%hu",chatip,chatport);
         lv_label_set_text(lb1,info);
     }
 
@@ -282,7 +355,7 @@ void show_chat()
     lv_obj_set_style_radius(chatmsg, 0, 0);
     lv_obj_set_style_border_width(chatmsg, 0, 0);
     lv_obj_set_style_bg_color(chatmsg, lv_color_hex(0xF5F5F5), 0);
-    //stp接入
+    load_chat_record(0,NULL,chatmsg);
     //tcp_chat("192.168.131.130", 10000, msg); // 示例IP和端口
     // 创建输入框：输入要聊天的信息 
     ta1 = lv_textarea_create(rightwin);
@@ -301,7 +374,7 @@ void show_chat()
     lv_obj_add_event_cb(sendbt, send_chat_cb, LV_EVENT_CLICKED, NULL);
 
     //自己主动加载聊天界面
-    lv_scr_load(setwin);
+    lv_scr_load(mainwin);
 }
 
 //创建群聊界面
@@ -314,24 +387,18 @@ void show_room()
     }
     morewin = NULL;
     chatmsg = NULL;
-    setwin = lv_obj_create(NULL);
-    lv_obj_set_size(setwin, 800, 480);
+    if(setwin!=NULL && lv_obj_is_valid(setwin) && lv_obj_get_parent(setwin)==mainwin)
+        lv_obj_del_async(setwin);
+    setwin = lv_obj_create(mainwin);
+    lv_obj_set_pos(setwin,70,0);
+    lv_obj_set_size(setwin, 730, 480);
     lv_obj_set_style_pad_all(setwin, 0, 0);
     lv_obj_set_style_border_width(setwin, 0, 0);
     lv_obj_add_event_cb(setwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
 
-    //左边导航栏
-    lv_obj_t * leftwin = lv_obj_create(setwin);
-    lv_obj_set_pos(leftwin, 0, 0);
-    lv_obj_set_size(leftwin, 70, 480);
-    lv_obj_set_style_pad_all(leftwin, 0, 0);
-    lv_obj_set_style_border_width(leftwin, 0, 0);
-    lv_obj_set_style_radius(leftwin, 0, 0);
-    lv_obj_set_style_bg_color(leftwin, lv_color_hex(0x2E2E2E), 0);
-
     //中间群聊列表界面
     lv_obj_t * middlewin = lv_obj_create(setwin);
-    lv_obj_set_pos(middlewin, 70, 0);
+    lv_obj_set_pos(middlewin, 0, 0);
     lv_obj_set_size(middlewin, 230, 480);
     lv_obj_set_style_pad_all(middlewin, 0, 0);
     lv_obj_set_style_border_width(middlewin, 0, 0);
@@ -340,21 +407,12 @@ void show_room()
 
     //右边群聊界面
     lv_obj_t * rightwin = lv_obj_create(setwin);
-    lv_obj_set_pos(rightwin, 300, 0);
+    lv_obj_set_pos(rightwin, 230, 0);
     lv_obj_set_size(rightwin, 500, 480);
     lv_obj_set_style_pad_all(rightwin, 0, 0);
     lv_obj_set_style_border_width(rightwin, 0, 0);
     lv_obj_set_style_radius(rightwin, 0, 0);
     lv_obj_set_style_bg_color(rightwin, lv_color_hex(0xFAFAFA), 0);
-
-    //返回按钮
-    lv_obj_t * backbt = lv_btn_create(leftwin);
-    lv_obj_set_pos(backbt, 5, 405);
-    lv_obj_set_size(backbt, 60, 55);
-    lv_obj_t * backlb = lv_label_create(backbt);
-    lv_label_set_text(backlb, "return");
-    lv_obj_center(backlb);
-    lv_obj_add_event_cb(backbt, set_back_main, LV_EVENT_CLICKED, NULL);
 
     //群聊搜索输入框
     ta2 = lv_textarea_create(middlewin);
@@ -370,7 +428,9 @@ void show_room()
     lv_obj_set_size(list, 230, 405);
     lv_obj_set_style_radius(list, 0, 0);
     lv_obj_set_style_border_width(list, 0, 0);
-    //stp接入
+    int i;
+    for(i=0;i<roommembernum;i++)
+        lv_list_add_text(list,roommemberbuf[i]);
 
     // 给标签设置文字 显示群聊信息 
     lv_obj_t * lb1 = lv_label_create(rightwin);
@@ -378,7 +438,12 @@ void show_room()
     lv_obj_set_size(lb1, 400, 45);
     lv_obj_add_style(lb1,mystyle,0);
     lv_label_set_text(lb1, "chat room");
-    //stp接入
+    if(roommembernum>0)
+    {
+        char roominfo[100]={0};
+        snprintf(roominfo,sizeof(roominfo),"chat room (%d)",roommembernum);
+        lv_label_set_text(lb1,roominfo);
+    }
 
     // 用来显示聊天界面的额外功能 里面有一个文本框 用来搜索聊天记录 有一个按钮用来清空聊天记录 有一个按钮 用来退出群聊 
     lv_obj_t * bt1 = lv_btn_create(rightwin); 
@@ -398,7 +463,7 @@ void show_room()
     lv_obj_set_style_radius(roommsg, 0, 0);
     lv_obj_set_style_border_width(roommsg, 0, 0);
     lv_obj_set_style_bg_color(roommsg, lv_color_hex(0xF5F5F5), 0);
-    //stp接入
+    load_chat_record(1,NULL,roommsg);
 
     // 创建输入框：输入要聊天的信息 
     ta1 = lv_textarea_create(rightwin);
@@ -417,5 +482,5 @@ void show_room()
     lv_obj_add_event_cb(sendbt, send_room_cb, LV_EVENT_CLICKED, NULL);
 
     //自己主动加载群聊界面
-    lv_scr_load(setwin);
+    lv_scr_load(mainwin);
 }

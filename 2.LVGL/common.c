@@ -10,6 +10,13 @@ lv_obj_t *setwin = NULL;
 lv_obj_t *chat_page = NULL;
 lv_obj_t *frd_page = NULL;
 lv_obj_t *set_page = NULL;
+lv_obj_t *frd_list = NULL;
+lv_obj_t *main_list = NULL;
+lv_obj_t *chat_list = NULL;
+lv_obj_t *room_list = NULL;
+lv_obj_t *login_message = NULL;
+lv_obj_t *search_result = NULL;
+lv_obj_t *search_add_btn = NULL;
 
 lv_obj_t *addwin = NULL;
 lv_obj_t *morewin = NULL;
@@ -17,7 +24,6 @@ lv_obj_t *morewin = NULL;
 lv_obj_t *chatmsg = NULL;
 lv_obj_t *roommsg = NULL;
 lv_obj_t *feedback_ta = NULL;
-
 lv_style_t *mystyle = NULL;
 
 uint32_t custom_tick_get(void);
@@ -40,6 +46,16 @@ lv_style_t *create_chinese_style(char *fontpath, int fontsize)
     lv_style_set_text_align(&style, LV_TEXT_ALIGN_CENTER);
 
     return &style;
+}
+
+void clear_page_point( )
+{
+    setwin=NULL;
+    morewin=NULL;
+    chatmsg=NULL;
+    roommsg=NULL;
+    chat_list=NULL;
+    room_list=NULL;
 }
 
 //这里凡是要聊天的输入框都要关联软键盘
@@ -79,17 +95,22 @@ void close_kb_cb(lv_event_t * e)
 void main_go_chat(lv_event_t * e)
 {
     lv_obj_t *oldwin = lv_scr_act();
-    lv_obj_clear_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(setwin!=NULL && lv_obj_is_valid(setwin) && lv_obj_get_parent(setwin)==mainwin)
+    {
+        lv_obj_del_async(setwin);
+        clear_page_point();
+    }
+    if(chat_page != NULL)
+        lv_obj_clear_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+    if(frd_page != NULL)
+        lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+    if(set_page != NULL)
+        lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
     if(oldwin != mainwin)
     {
         lv_scr_load(mainwin);
-        lv_obj_del(oldwin);
-        setwin = NULL;
-        morewin = NULL;
-        chatmsg = NULL;
-        roommsg = NULL;
+        lv_obj_del_async(oldwin);
+        clear_page_point();
     }
 }
 
@@ -97,17 +118,17 @@ void main_go_chat(lv_event_t * e)
 void main_go_frd(lv_event_t * e)
 {
     lv_obj_t *oldwin = lv_scr_act();
-    lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(setwin!=NULL && lv_obj_is_valid(setwin) && lv_obj_get_parent(setwin)==mainwin)
+    {
+        lv_obj_del_async(setwin);
+        clear_page_point();
+    }
+    show_frd();
     if(oldwin != mainwin)
     {
         lv_scr_load(mainwin);
-        lv_obj_del(oldwin);
-        setwin = NULL;
-        morewin = NULL;
-        chatmsg = NULL;
-        roommsg = NULL;
+        lv_obj_del_async(oldwin);
+        clear_page_point();
     }
 }
 
@@ -115,36 +136,62 @@ void main_go_frd(lv_event_t * e)
 void main_go_set(lv_event_t * e)
 {
     lv_obj_t *oldwin = lv_scr_act();
-    lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    if(setwin!=NULL && lv_obj_is_valid(setwin) && lv_obj_get_parent(setwin)==mainwin)
+    {
+        lv_obj_del_async(setwin);
+        clear_page_point();
+    }
+    if(set_page == NULL)
+        show_set();
+    else
+    {
+        lv_obj_add_flag(chat_page, LV_OBJ_FLAG_HIDDEN);
+        if(frd_page != NULL)
+            lv_obj_add_flag(frd_page, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(set_page, LV_OBJ_FLAG_HIDDEN);
+    }
     if(oldwin != mainwin)
     {
         lv_scr_load(mainwin);
-        lv_obj_del(oldwin);
-        setwin = NULL;
-        morewin = NULL;
-        chatmsg = NULL;
-        roommsg = NULL;
+        lv_obj_del_async(oldwin);
+        clear_page_point();
     }
 }
 
 // 主界面 -> 登入界面  
 void main_back_log(lv_event_t * e)
 {
+    lv_obj_t *oldwin = mainwin;
+    tcp_logout();
     show_login();
-    lv_obj_del(mainwin);
+    lv_obj_del_async(oldwin);
+    mainwin = NULL;
+    chat_page = NULL;
+    frd_page = NULL;
+    set_page = NULL;
+    frd_list = NULL;
+    main_list = NULL;
+    chat_list = NULL;
+    room_list = NULL;
+    search_result = NULL;
+    search_add_btn = NULL;
+    tcp_list = NULL;
 }
 
 // 其他功能界面 -> 主界面
 void set_back_main(lv_event_t * e)
 {
+    lv_obj_t *oldwin = setwin;
     lv_scr_load(mainwin);
-    lv_obj_del(setwin);
+    lv_obj_del_async(oldwin);
     setwin = NULL;
     morewin = NULL;
     chatmsg = NULL;
     roommsg = NULL;
+    chat_list = NULL;
+    room_list = NULL;
+    search_result = NULL;
+    search_add_btn = NULL;
 }
 
 lv_obj_t *create_left_menu(lv_obj_t *parent)
@@ -170,9 +217,9 @@ lv_obj_t *create_left_menu(lv_obj_t *parent)
     lv_obj_t *lb1 = lv_label_create(bt1);
     lv_obj_t *lb2 = lv_label_create(bt2);
     lv_obj_t *lb3 = lv_label_create(bt3);
-    lv_label_set_text(lb1, "chatroom");
-    lv_label_set_text(lb2, "personal");
-    lv_label_set_text(lb3, "settings");
+    lv_label_set_text(lb1, "chat");
+    lv_label_set_text(lb2, "solo");
+    lv_label_set_text(lb3, "sets");
     lv_obj_center(lb1);
     lv_obj_center(lb2);
     lv_obj_center(lb3);

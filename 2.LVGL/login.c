@@ -2,33 +2,55 @@
 
 
 //登录界面 -> 注册界面 
-void log_go_sig(lv_event_t * e)
+void log_go_sig(lv_event_t *e)
 {
+    lv_obj_t *oldwin = loginwin;
     show_sign();
-    lv_obj_del(loginwin);
+    lv_obj_del_async(oldwin);
+    loginwin = NULL;
 }
 
 //登入界面 ->主界面
-void log_go_main(lv_event_t * e) // 登录按钮
+void log_go_main(lv_event_t *e) // 登录按钮
 {
-    //stp接入
-    show_main();
-    lv_obj_del(loginwin);
+    const char *username = lv_textarea_get_text(ta1);
+    const char *password = lv_textarea_get_text(ta2);
+    if(strlen(username) == 0 || strlen(password) == 0)
+    {
+        lv_label_set_text(login_message, "用户名和密码不能为空");
+        return;
+    }
+
+    if(tcp_login(username,password) == 0)
+        lv_label_set_text(login_message, "正在登录...");
+    else
+        lv_label_set_text(login_message, "服务器未连接");
 }
 
 //注册界面 ->主菜单
 void set_go_main(lv_event_t * e) // 注册按钮
 {
-    //stp接入
-    show_main();
-    lv_obj_del(setwin);
+    const char *username = lv_textarea_get_text(ta1);
+    const char *password = lv_textarea_get_text(ta2);
+    if(strlen(username) == 0 || strlen(password) == 0)
+    {
+        lv_label_set_text(login_message, "用户名和密码不能为空");
+        return;
+    }
+
+    if(tcp_register(username,password) == 0)
+        lv_label_set_text(login_message, "正在注册...");
+    else
+        lv_label_set_text(login_message, "服务器未连接");
 }
 
 // 注册界面 -> 登录界面
 void set_back_log(lv_event_t * e)
 {
+    lv_obj_t *oldwin = setwin;
     show_login();
-    lv_obj_del(setwin);
+    lv_obj_del_async(oldwin);
+    setwin = NULL;
 }
 
 void show_login()
@@ -39,6 +61,7 @@ void show_login()
         lv_obj_add_flag(kb1, LV_OBJ_FLAG_HIDDEN);
     }
     loginwin = lv_obj_create(NULL);
+    login_message = NULL;
     lv_obj_set_size(loginwin, 800, 480);
     lv_obj_add_event_cb(loginwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_t * lb1 = lv_label_create(loginwin);
@@ -97,6 +120,12 @@ void show_login()
     lv_obj_add_event_cb(bt1, log_go_main, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(bt2, log_go_sig, LV_EVENT_CLICKED, NULL);
 
+    login_message = lv_label_create(loginwin);
+    lv_obj_set_pos(login_message, 210, 405);
+    lv_obj_set_size(login_message, 380, 45);
+    lv_obj_add_style(login_message,mystyle,0);
+    lv_label_set_text(login_message, "");
+
     //自己主动加载登录界面
     lv_scr_load(loginwin);
 
@@ -111,6 +140,7 @@ void show_sign()
         lv_obj_add_flag(kb1, LV_OBJ_FLAG_HIDDEN);
     }
     setwin = lv_obj_create(NULL);
+    login_message = NULL;
     lv_obj_set_size(setwin, 800, 480);
     lv_obj_add_event_cb(setwin, close_kb_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_t * lb1 = lv_label_create(setwin);
@@ -171,6 +201,12 @@ void show_sign()
      // 给按钮添加事件响应函数:  LV_EVENT_CLICKED枚举值表示按钮点击事件
     lv_obj_add_event_cb(bt1, set_back_log, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(bt2, set_go_main, LV_EVENT_CLICKED, NULL);
+
+    login_message = lv_label_create(setwin);
+    lv_obj_set_pos(login_message, 210, 405);
+    lv_obj_set_size(login_message, 380, 45);
+    lv_obj_add_style(login_message,mystyle,0);
+    lv_label_set_text(login_message, "");
     //自己主动加载注册界面
     lv_scr_load(setwin);
 
